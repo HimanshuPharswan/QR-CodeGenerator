@@ -6,8 +6,10 @@ A one-page website that turns text or a link into a QR code you can download as 
 
 - Works with any language and with emoji (UTF-8)
 - Optional name in the center of the code, shown on the image only
-- Starter templates for a website, Wi-Fi network, email address and phone number
-- Live byte counter, with clear messages for empty or too-long content
+- Starter templates for a website, email address and phone number
+- Wi-Fi template with its own fields, which handles special characters for you
+- Live byte counter, with clear messages for empty, unfinished or too-long content
+- Notice when the fields no longer match the code on screen, and a warning for content that may be hard to scan
 - PNG download at 640 × 640 pixels
 - Light and dark themes: follows your system setting until you use the theme button, then remembers your choice
 - Responsive layout for phones, tablets and desktops, with large buttons for touch screens
@@ -25,8 +27,11 @@ To see an edit, save the file and refresh the browser tab.
 | `index.html` | The page structure and all the text you see |
 | `style.css` | Colors, fonts, spacing and layout |
 | `script.js` | How the code is generated, plus the settings, templates and theme button |
+| `favicon.svg` | The icon in the browser tab |
+| `og-image.png` | The preview image shown when the link is shared (1200 × 630 pixels) |
+| `LICENSE` | The terms for reusing this code |
 
-Keep the three files in the same folder, because `index.html` loads the other two from there.
+Keep these files in the same folder, because `index.html` loads the others from there.
 
 ## Make your own changes
 
@@ -40,7 +45,8 @@ Edit the values at the top of `style.css`:
 | `--surface` | QR code panel and text box |
 | `--ink` | Main text |
 | `--muted` | Secondary text |
-| `--line` | Borders and dividers |
+| `--line` | Dividers and the QR code panel's border |
+| `--control-line` | Borders on the theme and template buttons |
 | `--accent` | Buttons and links |
 | `--on-accent` | Text on buttons |
 | `--scan` | Line that sweeps over a new code |
@@ -65,6 +71,14 @@ Search for the words you want to change and edit them in `index.html`:
 
 The browser tab title and the search description are the `<title>` and `<meta name="description">` in the `<head>`.
 
+### Change the shared link preview
+
+When the link is shared, apps read the `og:` tags in the `<head>` of `index.html` to build the preview:
+
+- **Text:** edit `og:title` and `og:description`.
+- **Image:** replace `og-image.png` with another image of 1200 × 630 pixels.
+- **Address:** these tags use the GitHub Pages address. If the site moves, update `og:url` and `og:image`. The image won't appear in previews until the site is online.
+
 ### Change the example link
 
 The page shows a code when it first opens. To change its content, edit `value="..."` on the `<input id="content">` line in `index.html`.
@@ -86,6 +100,12 @@ The page shows a code when it first opens. To change its content, edit `value=".
    },
    ```
 
+If someone selects **Generate** without editing a template's `value`, the page asks them to finish it first.
+
+### Change the Wi-Fi template
+
+The Wi-Fi button shows its own **Network name** and **Password** fields in `index.html`. In `script.js`, `buildWifiText` turns them into the text for the code, and `escapeWifiText` handles the characters that have a special meaning in the Wi-Fi format (`\`, `;`, `,`, `"` and `:`). Typing in the main **Text or link** box hides these fields.
+
 ### Change the QR code settings
 
 These are under `Settings` at the top of `script.js`:
@@ -97,8 +117,9 @@ These are under `Settings` at the top of `script.js`:
 | `QR_LEVEL` | Error correction when there's no name: `L`, `M`, `Q` or `H`. Higher levels survive more damage but hold less |
 | `QR_LEVEL_WITH_NAME` | Error correction when there is a name. Keep this at `H` |
 | `MAX_BYTES` | Content limit for each level. The page picks the right one automatically, so you shouldn't need to change these |
+| `LONG_CONTENT_BYTES` | Above this size, the page warns that the code may be hard to scan |
 | `NAME_FONT_SIZE` | Largest size of the name, in pixels on the PNG. Long names shrink to fit |
-| `NAME_MAX_WIDTH` | Widest the name's box can be, as a share of the code (`0.5` is half) |
+| `NAME_MAX_WIDTH` | Widest the name's box can be, as a share of the code (`0.4` is 40%) |
 
 ### Change the name in the center
 
@@ -156,3 +177,7 @@ After a minute or two, the page will be at:
 ```text
 https://himanshupharswan.github.io/QR-CodeGenerator/
 ```
+
+## License
+
+This project is available under the [MIT License](LICENSE).

@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>QR Code Generator</title>
     <meta name="description" content="Turn text or a link into a QR code and download it as a PNG. Everything happens in your browser.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+    <!-- Preview shown when the link is shared. These need full addresses, so update them if the site moves. -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="QR Code Generator">
+    <meta property="og:description" content="Turn text or a link into a QR code and download it as a PNG. Everything happens in your browser.">
+    <meta property="og:url" content="https://himanshupharswan.github.io/QR-CodeGenerator/">
+    <meta property="og:image" content="https://himanshupharswan.github.io/QR-CodeGenerator/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="QR Code Generator: turn any text or link into a QR code.">
+    <meta name="twitter:card" content="summary_large_image">
+
     <script>
         // Applies a saved theme before the page draws, so the wrong theme never flashes.
         try {
@@ -56,7 +69,7 @@
                             <label for="content">Text or link</label>
                             <span id="byte-count" class="mono-note"></span>
                         </div>
-                        <input type="text" id="content" value="https://github.com/HimanshuPharswan/QR-CodeGenerator" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="hint">
+                        <input type="text" id="content" value="https://github.com/HimanshuPharswan/QR-CodeGenerator" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="hint long-note">
 
                         <!-- Starter buttons: to add one, copy a line and add its details to TEMPLATES in script.js -->
                         <div class="chips" role="group" aria-label="Start from a template">
@@ -66,7 +79,19 @@
                             <button type="button" class="chip" data-template="phone">Phone</button>
                         </div>
 
+                        <div class="wifi-fields" id="wifi-fields" hidden>
+                            <div>
+                                <label for="wifi-name">Network name</label>
+                                <input type="text" id="wifi-name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+                            </div>
+                            <div>
+                                <label for="wifi-password">Password <span class="optional">(if it has one)</span></label>
+                                <input type="text" id="wifi-password" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+                            </div>
+                        </div>
+
                         <p id="hint" hidden></p>
+                        <p id="long-note" class="field-note" hidden>This is a lot of content for one code, so it may be hard to scan. Use the downloaded PNG at a larger size, and test it before you share it.</p>
                     </div>
 
                     <div class="field">
@@ -76,15 +101,17 @@
                     </div>
 
                     <p id="error" role="alert" hidden></p>
+                    <p id="status" class="visually-hidden" role="status"></p>
                     <button type="submit" class="button primary">Generate</button>
                 </form>
             </div>
 
-            <aside class="label" id="result" aria-label="Your QR code">
+            <aside class="label" id="result" aria-label="Your QR code" tabindex="-1">
                 <div class="code-frame" id="code-frame">
                     <canvas id="qr-canvas" role="img" aria-label="Generated QR code"></canvas>
                     <div class="scan-line"></div>
                 </div>
+                <p id="stale-note" role="status" hidden>You changed the details. Select Generate to update this code.</p>
                 <div class="encodes">
                     <span class="mono-note">This code contains</span>
                     <span id="encoded-text"></span>

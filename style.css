@@ -6,6 +6,7 @@
     --ink: #141c2e;
     --muted: #535e73;
     --line: #cdd3df;
+    --control-line: #7f899b;
     --accent: #1c44c9;
     --on-accent: #ffffff;
     --scan: #e5484d;
@@ -24,6 +25,7 @@
         --ink: #e8ecf5;
         --muted: #a2acc0;
         --line: #39425a;
+        --control-line: #667089;
         --accent: #92a9ff;
         --on-accent: #0c1330;
         --scan: #ff6b6f;
@@ -39,6 +41,7 @@
     --ink: #e8ecf5;
     --muted: #a2acc0;
     --line: #39425a;
+    --control-line: #667089;
     --accent: #92a9ff;
     --on-accent: #0c1330;
     --scan: #ff6b6f;
@@ -130,7 +133,7 @@ header {
     min-height: 44px;
     padding: 8px 14px;
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--control-line);
     border-radius: 4px;
     color: var(--ink);
     font-family: var(--font-mono);
@@ -250,7 +253,7 @@ input {
     min-height: 44px;
     padding: 8px 14px;
     background: transparent;
-    border: 1px solid var(--line);
+    border: 1px solid var(--control-line);
     border-radius: 4px;
     color: var(--ink);
     font-family: var(--font-mono);
@@ -312,6 +315,34 @@ a:focus-visible {
     outline-offset: 2px;
 }
 
+input::placeholder {
+    color: var(--muted);
+    opacity: 1;
+}
+
+/* Wi-Fi network and password fields */
+.wifi-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.wifi-fields > div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+/* Read by screen readers only */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 #hint {
     color: var(--muted);
     font-size: 0.9375rem;
@@ -332,6 +363,20 @@ a:focus-visible {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 6px;
+}
+
+/* The panel takes focus on phones, which closes the keyboard */
+#result:focus {
+    outline: none;
+}
+
+/* Fades the code when the fields no longer match it */
+.out-of-date canvas {
+    opacity: 0.25;
+}
+
+#stale-note {
+    font-weight: 700;
 }
 
 .code-frame {
@@ -476,6 +521,10 @@ footer {
 
     .primary {
         justify-self: stretch;
+    }
+
+    .wifi-fields {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .chip {
