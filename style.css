@@ -120,6 +120,7 @@ a {
 /* ===== Header: site name on the left, theme button on the right ===== */
 header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
@@ -426,6 +427,11 @@ canvas {
 .encodes {
     display: grid;
     gap: 2px;
+    min-width: 0;
+}
+
+#encoded-name {
+    overflow-wrap: anywhere;
 }
 
 #encoded-text {
@@ -479,8 +485,24 @@ canvas {
 footer {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
     gap: 8px 24px;
+}
+
+footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+/* Shown only when JavaScript is off */
+.noscript {
+    padding: 12px 14px;
+    border: 1px solid var(--error);
+    border-radius: 4px;
+    color: var(--error);
+    font-weight: 700;
 }
 
 /* ===== Phones and small tablets ===== */

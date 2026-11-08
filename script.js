@@ -7,8 +7,11 @@ const QR_LEVEL_WITH_NAME = 'H';  // Keep this at H. The name hides part of the c
 const MAX_BYTES = { L: 2953, M: 2331, Q: 1663, H: 1273 };  // Content limit for each level
 
 const LONG_CONTENT_BYTES = 300;  // Above this, the page warns that the code may be hard to scan
-const NAME_FONT_SIZE = 40;       // Largest size of the name, in pixels on the PNG
+const NAME_FONT_SIZE = 40;       // Largest size of a one-line name, in pixels on the PNG
+const NAME_TWO_LINE_FONT_SIZE = 30;  // Largest size when a long name is split over two lines
+const NAME_MIN_FONT_SIZE = 24;   // Below this, a one-line name is split over two lines instead
 const NAME_MAX_WIDTH = 0.4;      // Widest the name's box can be, as a share of the code
+const DOWNLOAD_FILE_NAME = 'qr-code.png';
 
 // What each starter button puts in the box, and the hint it shows.
 // The page won't make a code from a value that hasn't been edited.
@@ -31,6 +34,9 @@ const TEMPLATES = {
         hint: 'Replace the number, and include the country code.'
     }
 };
+
+// Content that is only one of these beginnings makes a code that does nothing
+const EMPTY_STARTS = ['http://', 'https://', 'mailto:', 'tel:', 'sms:', 'smsto:', 'geo:', 'WIFI:'];
 
 // ===== Page elements =====
 const form = document.getElementById('qr-form');
@@ -80,6 +86,21 @@ function shorten(text) {
     return text.length > 80 ? text.slice(0, 80) + '...' : text;
 }
 
+// True when the text has nothing you can see, such as only spaces or zero-width characters
+function isInvisible(text) {
+    return text.replace(/[\p{White_Space}\p{Cf}]/gu, '') === '';
+}
+
+// Splits text into the characters a reader sees, so Hindi and emoji aren't broken apart
+function characters(text) {
+    if (window.Intl && Intl.Segmenter) {
+        return Array.from(new Intl.Segmenter().segment(text), function (part) {
+            return part.segment;
+        });
+    }
+    return Array.from(text);
+}
+
 // Keeps the counter, the long-content warning and the out-of-date notice correct
 function updateForm() {
     const used = toBytes(contentValue()).length;
@@ -94,21 +115,70 @@ function updateForm() {
     download.hidden = outOfDate;
 }
 
+// Removes an old error as soon as you change something, and brings back the last code
+function clearError() {
+    if (error.hidden) {
+        return;
+    }
+    error.hidden = true;
+    if (drawnValue) {
+        result.hidden = false;
+    }
+}
+
+// Tells screen readers about a new code, even when the message is the same as last time
+function announce(message) {
+    statusMessage.textContent = '';
+    window.setTimeout(function () {
+        statusMessage.textContent = message;
+    }, 100);
+}
+
+// ===== Name in the center =====
+// Splits a long name into two lines of similar length, at a space when there is one
+function splitName(name) {
+    const middle = name.length / 2;
+    let best = -1;
+    for (let i = 0; i < name.length; i++) {
+        if (name[i] === ' ' && (best === -1 || Math.abs(i - middle) < Math.abs(best - middle))) {
+            best = i;
+        }
+    }
+    if (best !== -1) {
+        return [name.slice(0, best), name.slice(best + 1)];
+    }
+    const parts = characters(name);
+    const half = Math.ceil(parts.length / 2);
+    return [parts.slice(0, half).join(''), parts.slice(half).join('')];
+}
+
 // Draws the name in a white box over the middle of the finished code
 function drawCenterName(name) {
     const context = canvas.getContext('2d');
     const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-body');
     const sidePadding = 14;
-    const maxBoxWidth = (QR_SIZE - QR_MARGIN * 2) * NAME_MAX_WIDTH;
+    const textSpace = (QR_SIZE - QR_MARGIN * 2) * NAME_MAX_WIDTH - sidePadding * 2;
 
-    // Measure the name at full size, then shrink it if it wouldn't fit
-    context.font = '700 ' + NAME_FONT_SIZE + 'px ' + fontFamily;
-    const fullWidth = context.measureText(name).width;
-    const fontSize = Math.min(NAME_FONT_SIZE, NAME_FONT_SIZE * (maxBoxWidth - sidePadding * 2) / fullWidth);
-    const textWidth = fullWidth * fontSize / NAME_FONT_SIZE;
+    function widthAt(text, size) {
+        context.font = '700 ' + size + 'px ' + fontFamily;
+        return context.measureText(text).width;
+    }
 
+    // Use one line when the name fits at a readable size, otherwise use two lines
+    let lines = [name];
+    let fontSize = Math.min(NAME_FONT_SIZE, NAME_FONT_SIZE * textSpace / widthAt(name, NAME_FONT_SIZE));
+    if (fontSize < NAME_MIN_FONT_SIZE) {
+        lines = splitName(name);
+        const widest = Math.max(widthAt(lines[0], NAME_TWO_LINE_FONT_SIZE), widthAt(lines[1], NAME_TWO_LINE_FONT_SIZE));
+        fontSize = Math.min(NAME_TWO_LINE_FONT_SIZE, NAME_TWO_LINE_FONT_SIZE * textSpace / widest);
+    }
+
+    const lineHeight = fontSize * 1.2;
+    const textWidth = Math.max.apply(null, lines.map(function (line) {
+        return widthAt(line, fontSize);
+    }));
     const boxWidth = textWidth + sidePadding * 2;
-    const boxHeight = fontSize * 1.7;
+    const boxHeight = lineHeight * lines.length + fontSize * 0.5;
     const boxLeft = (QR_SIZE - boxWidth) / 2;
     const boxTop = (QR_SIZE - boxHeight) / 2;
 
@@ -125,7 +195,10 @@ function drawCenterName(name) {
     context.font = '700 ' + fontSize + 'px ' + fontFamily;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText(name, QR_SIZE / 2, QR_SIZE / 2);
+    lines.forEach(function (line, index) {
+        const offset = (index - (lines.length - 1) / 2) * lineHeight;
+        context.fillText(line, QR_SIZE / 2, QR_SIZE / 2 + offset);
+    });
 }
 
 // On phones, closes the keyboard and brings the code into view. With a keyboard
@@ -158,6 +231,12 @@ function updateThemeButton() {
     document.getElementById('icon-moon').toggleAttribute('hidden', dark);
     document.getElementById('icon-sun').toggleAttribute('hidden', !dark);
     themeToggle.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+
+    // Matches the phone's browser bar to the page background
+    const background = getComputedStyle(document.body).backgroundColor;
+    document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) {
+        meta.setAttribute('content', background);
+    });
 }
 
 themeToggle.addEventListener('click', function () {
@@ -193,7 +272,7 @@ function escapeWifiText(text) {
 }
 
 function buildWifiText() {
-    if (!wifiName.value) {
+    if (isInvisible(wifiName.value)) {
         return '';
     }
     const network = 'S:' + escapeWifiText(wifiName.value) + ';';
@@ -204,6 +283,7 @@ function buildWifiText() {
 
 function updateFromWifiFields() {
     input.value = buildWifiText();
+    clearError();
     updateForm();
 }
 
@@ -214,7 +294,7 @@ function generate(animate) {
     const level = currentLevel();
     const limit = MAX_BYTES[level];
 
-    if (!value) {
+    if (isInvisible(value)) {
         if (wifiFields.hidden) {
             showError('Enter some text or a link first.');
             input.focus();
@@ -230,6 +310,15 @@ function generate(animate) {
     });
     if (unfinished) {
         showError('Finish the template first. ' + unfinished.hint);
+        input.focus();
+        return;
+    }
+
+    const emptyStart = EMPTY_STARTS.find(function (start) {
+        return value.toLowerCase() === start.toLowerCase();
+    });
+    if (emptyStart) {
+        showError('Add the rest after "' + emptyStart + '" first.');
         input.focus();
         return;
     }
@@ -265,6 +354,7 @@ function generate(animate) {
     drawnValue = value;
     drawnName = name;
     download.href = canvas.toDataURL('image/png');
+    download.download = DOWNLOAD_FILE_NAME;
     canvas.setAttribute('aria-label', 'QR code for: ' + shorten(value));
     encodedText.textContent = value;
     encodedName.textContent = name;
@@ -274,7 +364,7 @@ function generate(animate) {
     updateForm();
 
     if (animate) {
-        statusMessage.textContent = 'QR code created for: ' + shorten(value);
+        announce('QR code created for: ' + shorten(value) + (name ? ', with the name ' + name + ' in the center' : ''));
         playScanLine();
         showNewCode();
     }
@@ -290,9 +380,13 @@ form.addEventListener('submit', function (event) {
 input.addEventListener('input', function () {
     // Typing in the main box replaces whatever the Wi-Fi fields built
     wifiFields.hidden = true;
+    clearError();
     updateForm();
 });
-nameInput.addEventListener('input', updateForm);
+nameInput.addEventListener('input', function () {
+    clearError();
+    updateForm();
+});
 wifiName.addEventListener('input', updateFromWifiFields);
 wifiPassword.addEventListener('input', updateFromWifiFields);
 
@@ -304,7 +398,7 @@ document.querySelectorAll('.chip').forEach(function (chip) {
         wifiFields.hidden = !isWifi;
         hint.textContent = template.hint;
         hint.hidden = false;
-        error.hidden = true;
+        clearError();
 
         if (isWifi) {
             updateFromWifiFields();

@@ -16,7 +16,7 @@ A one-page website that turns text or a link into a QR code you can download as 
 
 ## Run it
 
-Double-click `index.html` to open it in your browser. There is nothing to install or build, but you need an internet connection because the QR library and fonts load from the web.
+Double-click `index.html` to open it in your browser. There is nothing to install or build, but you need an internet connection because the QR library and fonts load from the web. JavaScript must be turned on, and the page shows a message if it isn't.
 
 To see an edit, save the file and refresh the browser tab.
 
@@ -118,14 +118,19 @@ These are under `Settings` at the top of `script.js`:
 | `QR_LEVEL_WITH_NAME` | Error correction when there is a name. Keep this at `H` |
 | `MAX_BYTES` | Content limit for each level. The page picks the right one automatically, so you shouldn't need to change these |
 | `LONG_CONTENT_BYTES` | Above this size, the page warns that the code may be hard to scan |
-| `NAME_FONT_SIZE` | Largest size of the name, in pixels on the PNG. Long names shrink to fit |
+| `NAME_FONT_SIZE` | Largest size of a one-line name, in pixels on the PNG. Longer names shrink to fit |
+| `NAME_MIN_FONT_SIZE` | If a one-line name would be smaller than this, it's split over two lines instead |
+| `NAME_TWO_LINE_FONT_SIZE` | Largest size of a name split over two lines |
 | `NAME_MAX_WIDTH` | Widest the name's box can be, as a share of the code (`0.4` is 40%) |
+| `DOWNLOAD_FILE_NAME` | File name of the downloaded PNG |
+| `EMPTY_STARTS` | Beginnings, such as `mailto:`, that can't be used on their own because the code would do nothing |
 
 ### Change the name in the center
 
 The white box hides part of the code, and the code still scans because error correction rebuilds the hidden part. That's why a name switches the code to level `H`, which lowers the content limit to 1,273 bytes.
 
-- **Size:** a bigger box hides more of the code, so test with a phone if you raise `NAME_FONT_SIZE` or `NAME_MAX_WIDTH`.
+- **Size:** a bigger box hides more of the code, so test with a phone if you raise `NAME_FONT_SIZE`, `NAME_TWO_LINE_FONT_SIZE` or `NAME_MAX_WIDTH`.
+- **Long names:** a name that would be smaller than `NAME_MIN_FONT_SIZE` on one line is split over two lines, at the space nearest the middle when there is one.
 - **Length:** the `maxlength="20"` on the `<input id="center-name">` line in `index.html` sets the longest name allowed.
 - **Look:** the box and text are drawn in the `drawCenterName` function in `script.js`.
 

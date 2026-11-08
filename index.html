@@ -6,6 +6,8 @@
     <title>QR Code Generator</title>
     <meta name="description" content="Turn text or a link into a QR code and download it as a PNG. Everything happens in your browser.">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#10141f" media="(prefers-color-scheme: dark)">
 
     <!-- Preview shown when the link is shared. These need full addresses, so update them if the site moves. -->
     <meta property="og:type" content="website">
@@ -63,6 +65,10 @@
 
                 <p class="lead">Type it, generate it, and download a PNG. Everything happens in your browser, so what you enter stays on your device.</p>
 
+                <noscript>
+                    <p class="noscript">This tool needs JavaScript. Turn it on in your browser settings, then reload the page.</p>
+                </noscript>
+
                 <form id="qr-form" novalidate>
                     <div class="field">
                         <div class="field-head">
@@ -106,7 +112,7 @@
                 </form>
             </div>
 
-            <aside class="label" id="result" aria-label="Your QR code" tabindex="-1">
+            <aside class="label" id="result" aria-label="Your QR code" tabindex="-1" hidden>
                 <div class="code-frame" id="code-frame">
                     <canvas id="qr-canvas" role="img" aria-label="Generated QR code"></canvas>
                     <div class="scan-line"></div>
@@ -120,11 +126,11 @@
                     <span class="mono-note">Name in the center</span>
                     <span id="encoded-name"></span>
                 </div>
-                <a id="download" class="button secondary" download="qr-code.png">Download PNG</a>
+                <a id="download" class="button secondary" href="#result" hidden>Download PNG</a>
             </aside>
         </main>
 
-        <div class="guide">
+        <section class="guide" aria-label="How to use this tool">
             <section>
                 <h2>How it works</h2>
                 <ol class="steps">
@@ -173,7 +179,7 @@
                     </li>
                 </ul>
             </section>
-        </div>
+        </section>
 
         <footer class="mono-note">
             <span>Codes are drawn with QRious.</span>
